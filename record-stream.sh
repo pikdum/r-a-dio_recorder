@@ -18,6 +18,15 @@ append_lp_log() {
     sort -u -o "$lp_file" "$lp_file"
 }
 
+cleanup() {
+    if [[ -n $pid ]]; then
+        echo "Killing process $pid..."
+        kill "$pid" || true
+    fi
+}
+
+trap cleanup EXIT
+
 while true; do
     if is_streaming && ! is_recording; then
         echo "Recording started."
@@ -35,7 +44,7 @@ while true; do
     elif ! is_streaming && is_recording; then
         echo "Recording stopped."
         append_lp_log "$log"
-        kill $pid
+        kill "$pid" || true
         pid=""
     fi
     sleep 60
