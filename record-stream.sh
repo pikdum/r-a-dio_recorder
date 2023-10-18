@@ -55,5 +55,5 @@ while true; do
         log_dj
         log_songs
     fi
-    sleep 60
+    sleep 10
 done
