@@ -1,5 +1,5 @@
 [Unit]
-Description=R/a/d.io Stream Recorder
+Description=R/a/dio Stream Recorder
 Wants=network-online.target
 After=network-online.target
 
