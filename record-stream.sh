@@ -3,7 +3,7 @@ set -eo pipefail
 
 is_streaming() {
     [ "$DEBUG" = true ] && [ -e "is_streaming" ] && return 0
-    curl -s https://r-a-d.io/api | jq -e '.main.isafkstream == false' >/dev/null
+    echo "$data" | jq -e '.main.isafkstream == false' >/dev/null
 }
 
 is_recording() {
@@ -16,7 +16,7 @@ start_recording() {
     log="${recording}.log"
     wget https://stream.r-a-d.io/main.mp3 -O "$recording" >/dev/null 2>&1 &
     pid=$!
-    start_time=$(curl -s https://r-a-d.io/api | jq -r '.main.current')
+    start_time=$(echo "$data" | jq -r '.main.current')
 }
 
 stop_recording() {
@@ -24,15 +24,14 @@ stop_recording() {
 }
 
 log_songs() {
-    curl -s https://r-a-d.io/api | jq -r --arg start_time "$start_time" '.main.lp[] | select(.timestamp >= ($start_time | tonumber)) | "\(.timestamp): \(.meta)"' >>"$log"
-    curl -s https://r-a-d.io/api | jq -r '.main | "\(.end_time): \(.np)"' >>"$log"
+    echo "$data" | jq -r --arg start_time "$start_time" '.main.lp[] | select(.timestamp >= ($start_time | tonumber)) | "\(.timestamp): \(.meta)"' >>"$log"
+    echo "$data" | jq -r '.main | "\(.end_time): \(.np)"' >>"$log"
     sort -u -o "$log" "$log"
     awk -F ': ' '!seen[$2]++' "$log" >/tmp/song-log && mv /tmp/song-log "$log"
-
 }
 
 log_dj() {
-    new_dj=$(curl -s https://r-a-d.io/api | jq -r '.main.dj.djname')
+    new_dj=$(echo "$data" | jq -r '.main.dj.djname')
     if [ "$new_dj" != "$old_dj" ]; then
         echo "$(date +%s): *DJ* $new_dj" >>"$log"
     fi
@@ -42,6 +41,7 @@ log_dj() {
 trap stop_recording EXIT
 
 while true; do
+    data=$(curl -s https://r-a-d.io/api)
     if ! is_recording && is_streaming; then
         start_recording
         echo "Recording started: $recording"
