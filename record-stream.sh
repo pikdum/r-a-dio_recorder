@@ -16,15 +16,27 @@ start_recording() {
     log="${recording}.log"
     wget https://stream.r-a-d.io/main.mp3 -O "$recording" >/dev/null 2>&1 &
     pid=$!
+    start_time=$(curl -s https://r-a-d.io/api | jq -r '.main.current')
 }
 
 stop_recording() {
     [ -n "$pid" ] && kill "$pid" || true
 }
 
-append_lp_log() {
-    curl -s https://r-a-d.io/api | jq -r '.main.lp[] | "\(.timestamp): \(.meta)"' >>"$log"
+log_songs() {
+    curl -s https://r-a-d.io/api | jq -r --arg start_time "$start_time" '.main.lp[] | select(.timestamp >= ($start_time | tonumber)) | "\(.timestamp): \(.meta)"' >>"$log"
+    curl -s https://r-a-d.io/api | jq -r '.main | "\(.end_time): \(.np)"' >>"$log"
     sort -u -o "$log" "$log"
+    awk -F ': ' '!seen[$2]++' "$log" >/tmp/song-log && mv /tmp/song-log "$log"
+
+}
+
+log_dj() {
+    new_dj=$(curl -s https://r-a-d.io/api | jq -r '.main.dj.djname')
+    if [ "$new_dj" != "$old_dj" ]; then
+        echo "$(date +%s): *DJ* $new_dj" >>"$log"
+    fi
+    old_dj=$new_dj
 }
 
 trap stop_recording EXIT
@@ -33,13 +45,15 @@ while true; do
     if ! is_recording && is_streaming; then
         start_recording
         echo "Recording started: $recording"
-        append_lp_log
+        log_dj
+        log_songs
     elif is_recording && ! is_streaming; then
         stop_recording
         echo "Recording stopped: $recording"
-        append_lp_log
+        log_songs
     elif is_recording && is_streaming; then
-        append_lp_log
+        log_dj
+        log_songs
     fi
     sleep 60
 done
