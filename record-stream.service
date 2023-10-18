@@ -1,0 +1,13 @@
+[Unit]
+Description=R/a/d.io Stream Recorder
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+WorkingDirectory=/media/public/r-a-dio/automated
+ExecStart=/bin/bash /usr/local/bin/record-stream.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
