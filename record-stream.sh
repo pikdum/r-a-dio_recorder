@@ -27,7 +27,8 @@ log_songs() {
     echo "$data" | jq -r --arg start_time "$start_time" '.main.lp[] | select(.timestamp >= ($start_time | tonumber)) | "\(.timestamp): \(.meta)"' >>"$log"
     echo "$data" | jq -r '.main | "\(.end_time): \(.np)"' >>"$log"
     sort -u -o "$log" "$log"
-    awk -F ': ' '!seen[$2]++' "$log" >/tmp/song-log && mv /tmp/song-log "$log"
+    awk -F ': ' '{ lines[tolower($2)] = $0 } END { for (i in lines) { print lines[i] } }' "$log" >/tmp/song-log && mv /tmp/song-log "$log"
+    sort -u -o "$log" "$log"
 }
 
 log_dj() {
