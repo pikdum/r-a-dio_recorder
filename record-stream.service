@@ -8,6 +8,9 @@ User=root
 WorkingDirectory=/media/public/r-a-dio/automated
 ExecStart=/bin/bash /usr/local/bin/record-stream.sh
 Restart=always
+RestartSec=30
+StartLimitBurst=0
+StartLimitInterval=0
 
 [Install]
 WantedBy=multi-user.target
