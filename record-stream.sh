@@ -3,7 +3,7 @@ set -eo pipefail
 
 name="r-a-dio"
 api="https://r-a-d.io/api"
-stream="https://r-a-d.io/assets/main.mp3.m3u"
+stream="https://stream.r-a-d.io/main.mp3"
 
 is_streaming() {
     [ "$DEBUG" = true ] && [ -e "is_streaming" ] && return 0
@@ -16,7 +16,7 @@ is_recording() {
 }
 
 start_recording() {
-    recording="${name}_$(date +"%Y-%m-%dT%H-%M-%S-%3N").mp3.m3u"
+    recording="${name}_$(date +"%Y-%m-%dT%H-%M-%S-%3N").mp3"
     log="${recording}.log"
     wget "$stream" -O "$recording" >/dev/null 2>&1 &
     pid=$!
