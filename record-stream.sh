@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+name="r-a-dio"
+api="https://r-a-d.io/api"
+stream="https://r-a-d.io/assets/main.mp3.m3u"
+
 is_streaming() {
     [ "$DEBUG" = true ] && [ -e "is_streaming" ] && return 0
     echo "$data" | jq -e '.main.isafkstream == false' >/dev/null
@@ -12,9 +16,9 @@ is_recording() {
 }
 
 start_recording() {
-    recording="r-a-dio_$(date +"%Y-%m-%dT%H-%M-%S-%3N").mp3"
+    recording="${name}_$(date +"%Y-%m-%dT%H-%M-%S-%3N").mp3.m3u"
     log="${recording}.log"
-    wget https://stream.r-a-d.io/main.mp3 -O "$recording" >/dev/null 2>&1 &
+    wget "$stream" -O "$recording" >/dev/null 2>&1 &
     pid=$!
     start_time=$(echo "$data" | jq -r '.main.current')
 }
@@ -42,7 +46,7 @@ log_dj() {
 trap stop_recording EXIT
 
 while true; do
-    data=$(curl -s https://r-a-d.io/api)
+    data=$(curl -s "$api")
     if ! is_recording && is_streaming; then
         start_recording
         echo "Recording started: $recording"
