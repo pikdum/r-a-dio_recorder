@@ -5,6 +5,10 @@ name="r-a-dio"
 api="https://r-a-d.io/api"
 stream="https://stream.r-a-d.io/main.mp3"
 
+notify() {
+    echo -e "r/a/dio: $new_dj started streaming\n$stream" | curl -s -T- ntfy.sh/"$name"_alert
+}
+
 is_streaming() {
     [ "$DEBUG" = true ] && [ -e "is_streaming" ] && return 0
     echo "$data" | jq -e '.main.isafkstream == false' >/dev/null
@@ -51,6 +55,7 @@ while true; do
         start_recording
         echo "Recording started: $recording"
         log_dj
+        notify
         log_songs
     elif is_recording && ! is_streaming; then
         stop_recording
