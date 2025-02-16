@@ -49,6 +49,7 @@ log_dj() {
 
 trap stop_recording EXIT
 
+echo "Started: $(date)"
 while true; do
     data=$(curl -s "$api")
     if ! is_recording && is_streaming; then

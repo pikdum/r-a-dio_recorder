@@ -1,0 +1,12 @@
+services:
+  r-a-dio_recorder:
+    image: r-a-dio_recorder:latest
+    container_name: r-a-dio_recorder
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ${OUT_DIR}:/app/out
+    entrypoint: /app/record-stream.sh
+    restart: always
+    working_dir: /app/out
