@@ -4,6 +4,9 @@ set -eo pipefail
 name="r-a-dio"
 api="https://r-a-d.io/api"
 stream="https://stream.r-a-d.io/main.mp3"
+DEBUG="${DEBUG:-false}"
+pid=""
+old_dj=""
 
 notify() {
     echo -e "r/a/dio: $new_dj started streaming\n$stream" | curl -s -T- ntfy.sh/"$name"_alert
@@ -16,7 +19,7 @@ is_streaming() {
 
 is_recording() {
     [ "$DEBUG" = true ] && [ -e "is_recording" ] && return 0
-    [[ -n "$pid" ]] && [[ -n $(ps -p $pid -o pid=) ]]
+    [[ -n "$pid" ]] && [[ -n $(ps -p "$pid" -o pid=) ]]
 }
 
 start_recording() {
@@ -28,7 +31,9 @@ start_recording() {
 }
 
 stop_recording() {
-    [ -n "$pid" ] && kill "$pid" || true
+    if [ -n "$pid" ]; then
+        kill "$pid" || true
+    fi
 }
 
 log_songs() {
