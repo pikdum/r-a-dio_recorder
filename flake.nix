@@ -103,7 +103,7 @@
             };
 
             systemd.tmpfiles.rules = [
-              "d ${cfg.workingDirectory} 0750 ${user} ${group} -"
+              "d ${cfg.workingDirectory} 0755 ${user} ${group} -"
             ];
 
             systemd.services.r-a-dio-recorder = {
@@ -120,7 +120,7 @@
                 WorkingDirectory = cfg.workingDirectory;
                 Restart = "always";
                 RestartSec = 30;
-                UMask = "0027";
+                UMask = "0022";
                 NoNewPrivileges = true;
                 PrivateTmp = true;
                 ProtectHome = true;
