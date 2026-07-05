@@ -6,7 +6,7 @@
   };
 
   outputs =
-    { self, nixpkgs }:
+    { nixpkgs, ... }:
     let
       lib = nixpkgs.lib;
       systems = [
@@ -61,75 +61,6 @@
         }
       );
 
-      checks = forAllSystems (pkgs: {
-        default = mkPackage pkgs;
-      });
-
       formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
-
-      nixosModules.default =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-        let
-          cfg = config.services.r-a-dio-recorder;
-          user = "r-a-dio-recorder";
-          group = user;
-        in
-        {
-          options.services.r-a-dio-recorder = {
-            enable = lib.mkEnableOption "the r/a/dio recorder service";
-
-            workingDirectory = lib.mkOption {
-              type = lib.types.strMatching "^/.*";
-              default = "/var/lib/r-a-dio-recorder";
-              example = "/srv/r-a-dio";
-              description = "Directory where recordings and logs are written.";
-            };
-          };
-
-          config = lib.mkIf cfg.enable {
-            users.groups.${group} = { };
-
-            users.users.${user} = {
-              isSystemUser = true;
-              group = group;
-              description = "r/a/dio recorder service user";
-              home = cfg.workingDirectory;
-              createHome = false;
-            };
-
-            systemd.tmpfiles.rules = [
-              "d ${cfg.workingDirectory} 0755 ${user} ${group} -"
-            ];
-
-            systemd.services.r-a-dio-recorder = {
-              description = "Record the live r/a/dio stream";
-              wantedBy = [ "multi-user.target" ];
-              wants = [ "network-online.target" ];
-              after = [ "network-online.target" ];
-
-              serviceConfig = {
-                Type = "simple";
-                ExecStart = "${mkPackage pkgs}/bin/r-a-dio-recorder";
-                User = user;
-                Group = group;
-                WorkingDirectory = cfg.workingDirectory;
-                Restart = "always";
-                RestartSec = 30;
-                UMask = "0022";
-                NoNewPrivileges = true;
-                PrivateTmp = true;
-                ProtectHome = true;
-                ProtectSystem = "strict";
-                ReadWritePaths = [ cfg.workingDirectory ];
-              };
-            };
-          };
-        };
-
     };
 }
