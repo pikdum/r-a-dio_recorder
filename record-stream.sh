@@ -14,7 +14,7 @@ notify() {
 
 is_streaming() {
     [ "$DEBUG" = true ] && [ -e "is_streaming" ] && return 0
-    echo "$data" | jq -e '.main.isafkstream == false' >/dev/null
+    echo "$data" | jq -e '.main.isafkstream == false' >/dev/null 2>&1
 }
 
 is_recording() {
@@ -37,6 +37,7 @@ stop_recording() {
 }
 
 log_songs() {
+    echo "$data" | jq -e '.main | type == "object"' >/dev/null 2>&1 || return 0
     echo "$data" | jq -r --arg start_time "$start_time" '.main.lp[] | select(.timestamp >= ($start_time | tonumber)) | "\(.timestamp): \(.meta)"' >>"$log"
     echo "$data" | jq -r '.main | "\(.end_time): \(.np)"' >>"$log"
     sort -u -o "$log" "$log"
@@ -56,7 +57,7 @@ trap stop_recording EXIT
 
 echo "Started: $(date)"
 while true; do
-    data=$(curl -s "$api")
+    data=$(curl -s --connect-timeout 10 --max-time 30 "$api") || data=""
     if ! is_recording && is_streaming; then
         start_recording
         echo "Recording started: $recording"
